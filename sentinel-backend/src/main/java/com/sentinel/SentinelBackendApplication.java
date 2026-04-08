@@ -6,6 +6,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import com.sentinel.service.DockerDiscoveryService;
 import com.sentinel.service.KafkaDiscoveryService;
+import com.sentinel.repository.ServiceNodeRepository;
+import com.sentinel.model.ServiceNode;
 
 @SpringBootApplication
 public class SentinelBackendApplication {
@@ -15,18 +17,22 @@ public class SentinelBackendApplication {
     }
 
     @Bean
-    CommandLineRunner run(DockerDiscoveryService docker, KafkaDiscoveryService kafka) {
+    CommandLineRunner run(
+            DockerDiscoveryService docker,
+            ServiceNodeRepository repository) {
         return args -> {
-            System.out.println("--- DOCKER ---");
-            docker.discoverContainers().forEach(c -> System.out.println("Container: " + c.getName()));
+            System.out.println("Discovering Docker Containers...");
+            docker.discoverContainers().forEach(container -> {
+                ServiceNode node = repository.findByName(container.getName())
+                        .orElse(ServiceNode.builder().name(container.getName()).build());
 
-            System.out.println("--- KAFKA ---");
-            try {
-                kafka.getLiveTopics().forEach(t -> System.out.println("Topic: " + t));
-            } catch (Exception e) {
-                System.out.println("Kafka not ready yet or empty.");
-            }
+                node.setImage(container.getImage());
+                node.setStatus(container.getStatus());
+                node.setType("CONTAINER");
+
+                repository.save(node);
+                System.out.println("Saved/Updated service: " + node.getName());
+            });
         };
     }
-
 }
