@@ -11,10 +11,12 @@ import java.util.Map;
 
 @Configuration
 public class KafkaConfig {
-    @Value("${kafka.bootstrap-servers}") // it is a spring annotation that injects the value of the property
-                                         // kafka.bootstrap-servers from the application.properties file into this
-                                         // variable. so, we can use this variable to get the value of the bootstrap
-                                         // servers when we create the kafka admin client bean.
+    @Value("${spring.kafka.bootstrap-servers}") // it is a spring annotation that injects the value of the property
+                                                // spring.kafka.bootstrap-servers from the application.properties file
+                                                // into this
+                                                // variable. so, we can use this variable to get the value of the
+                                                // bootstrap
+                                                // servers when we create the kafka admin client bean.
     private String bootstrapServers;
 
     @Bean

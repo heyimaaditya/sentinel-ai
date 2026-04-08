@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import com.sentinel.service.DockerDiscoveryService;
+import com.sentinel.service.KafkaDiscoveryService;
 
 @SpringBootApplication
 public class SentinelBackendApplication {
@@ -14,11 +15,17 @@ public class SentinelBackendApplication {
     }
 
     @Bean
-    CommandLineRunner run(DockerDiscoveryService service) {
+    CommandLineRunner run(DockerDiscoveryService docker, KafkaDiscoveryService kafka) {
         return args -> {
-            System.out.println("Discovering Docker Containers...");
-            service.discoverContainers()
-                    .forEach(c -> System.out.println(c.getName() + " - " + c.getImage() + " - " + c.getState()));
+            System.out.println("--- DOCKER ---");
+            docker.discoverContainers().forEach(c -> System.out.println("Container: " + c.getName()));
+
+            System.out.println("--- KAFKA ---");
+            try {
+                kafka.getLiveTopics().forEach(t -> System.out.println("Topic: " + t));
+            } catch (Exception e) {
+                System.out.println("Kafka not ready yet or empty.");
+            }
         };
     }
 
